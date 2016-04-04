@@ -60,7 +60,7 @@ text(rda_shrub_all, display='sp', col='maroon', cex=.5)
 color_vect = c('black', 'dark red', 'tan', 'forest green')[-1]
 points(rda_shrub_all, 'sites', pch=19, 
        col=color_vect[sites$burn_season])
-legend('topright', paste("Burn Season =", 1:4, sep=''), 
+legend('topright', paste("Burn Season =", 1:3, sep=''), 
        col=color_vect, pch=19)
 
 
