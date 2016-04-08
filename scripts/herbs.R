@@ -9,22 +9,13 @@ sites = read.csv('./data/pc-ord sfp_Plot_Data.csv')
 dat[is.na(dat)] = 0
 sites[is.na(sites)] = 0
 
+#Declare an herb data.frame to use for analysis.
+dat_herb = dat[ , grepl('...1', names(dat), fixed=TRUE)]
+#Clean up species names to Genus.species
+names(dat_herb) = sub('...1', '', names(dat_herb))
+
 #Check if plot IDs and row names are equal
 all(sites$plot_ID == row.names(dat_herb))
-
-#Histograms of variation of cover between sites and species
-uni_sp = unique(row.names(dat_herb))
-sp_sum = apply(dat_herb, 2, sum)
-site_sum = apply(dat_herb, 1, sum)
-par(mfrow=c(2,2))
-hist(sp_sum)
-col = colorRamp(c('red', 'orange', 'blue'))
-sp_cols = col(length(uni_sp))
-plot(sp_sum[order(sp_sum, decreasing=T)], type='o', col='red', lwd=2,
-     xlab='Sp Rank', ylab='Sum Cover')
-hist(site_sum)
-plot(site_sum[order(site_sum, decreasing=T)], type='o', col='red', lwd=2,
-     xlab='Site Rank', ylab='Sum Cover')
 
 ## RDA Analysis
 #Variance partition to see different kinds of variation interactions among
@@ -38,21 +29,25 @@ burn = dummy(sites$burn_season)
 #Show the variation partitioning explaining cover in dat_herb
 varpart(dat_herb, tree, cbind(freq, burn))
 
+#Declare each RDA, by various explanatory variables, and then perform
+#anova() to observe possible significance
 #Herb RDA by burn season and frequency
 rda_herb_burn = rda(dat_herb ~ burn_freq + burn_season, data = sites)
 anova(rda_herb_burn, by='margin', permutations = 1000)
+
 #Herb RDA by community factors
 rda_herb_env = rda(dat_herb ~ total_pine + total_hw + canopy_cover + subcan_cover + 
                   trees_acre, data = sites)
+anova(rda_herb_env, by='margin', permutations = 1000)
+
 #Herb RDA by community factors, and burn_freq and burn_season
 #as covariables
 rda_herb_all = rda(dat_herb ~ total_pine + total_hw + canopy_cover + subcan_cover + 
                   trees_acre + Condition(burn_freq + burn_season),
                  data = sites)
-#Analyze variance within rda_herb_all
 anova(rda_herb_all, by='margin', permutations = 1000)
 
-#Plot rda_herb_all
+#Plot rda_herb_all, to observe 
 plot(rda_herb_all, display=c('bp'), xlim=c(-1, 1), ylim=c(-5, 5))
 text(rda_herb_all, display='sp', col='maroon', cex=.5)
 color_vect = c('black', 'dark red', 'tan', 'forest green')[-1]
@@ -86,5 +81,6 @@ plot(herb_glm)
 #Compare the two models
 anova(herb_mod, herb_glm)
 
+#herb_mod as a linear model with a better AIC score
 AIC(herb_mod)
 AIC(herb_glm)

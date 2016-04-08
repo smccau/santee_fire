@@ -9,22 +9,13 @@ sites = read.csv('./data/pc-ord sfp_Plot_Data.csv')
 dat[is.na(dat)] = 0
 sites[is.na(sites)] = 0
 
+#Declare a shrub data.frame to use for analysis.
+dat_shrub = dat[ , grepl('...2', names(dat), fixed=TRUE)]
+#Clean up species names to Genus.species
+names(dat_shrub) = sub('...2', '', names(dat_shrub))
+
 #Check if plot IDs and row names are equal
 all(sites$plot_ID == row.names(dat_shrub))
-
-#Histograms of variation of cover between sites and species
-uni_sp2 = unique(row.names(dat_shrub))
-sp_sum2 = apply(dat_shrub, 2, sum)
-site_sum2 = apply(dat_shrub, 1, sum)
-par(mfrow=c(2,2))
-hist(sp_sum2)
-col = colorRamp(c('red', 'orange', 'blue'))
-sp_cols = col(length(uni_sp2))
-plot(sp_sum2[order(sp_sum2, decreasing=T)], type='o', col='red', lwd=2,
-     xlab='Sp Rank', ylab='Sum Cover')
-hist(site_sum2)
-plot(site_sum2[order(site_sum2, decreasing=T)], type='o', col='red', lwd=2,
-     xlab='Site Rank', ylab='Sum Cover')
 
 ## RDA Analysis
 #Variance partition to see different kinds of variation interactions among
@@ -38,6 +29,8 @@ burn = dummy(sites$burn_season)
 #Show the variation partitioning explaining cover in dat_shrub
 varpart(dat_shrub, tree, cbind(freq, burn))
 
+#Declare each RDA, by various explanatory variables, and then perform
+#anova() to observe possible significance
 #Shrub RDA by burn season and frequency
 rda_shrub_burn = rda(dat_shrub ~ burn_freq + burn_season, data = sites)
 anova(rda_shrub_burn, by='margin', permutations = 1000)
@@ -88,5 +81,6 @@ plot(shrub_glm)
 #Compare the two models
 anova(shrub_mod, shrub_glm)
 
+#shrub_mod as a linear model with better AIC score
 AIC(shrub_mod)
 AIC(shrub_glm)

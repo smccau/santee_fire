@@ -4,6 +4,7 @@ dat[is.na(dat)] = 0
 head(dat)
 names(dat)
 
+## Script used to take out variables by plant type, and then clean up names
 #Declare variables
 #Note: dat_tree and dat_total only Pinus taeda
 dat_herb = dat[ , grepl('...1', names(dat), fixed=TRUE)]

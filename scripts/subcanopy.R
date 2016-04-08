@@ -9,22 +9,13 @@ sites = read.csv('./data/pc-ord sfp_Plot_Data.csv')
 dat[is.na(dat)] = 0
 sites[is.na(sites)] = 0
 
+#Declare a subcanopy data.frame to use for analysis.
+dat_sub = dat[ , grepl('...3', names(dat), fixed=TRUE)]
+#Clean up species names to Genus.species
+names(dat_sub) = sub('...3', '', names(dat_sub))
+
 #Check if plot IDs and row names are equal
 all(sites$plot_ID == row.names(dat_sub))
-
-#Histograms of variation of cover between sites and species
-uni_sp3 = unique(row.names(dat_sub))
-sp_sum3 = apply(dat_sub, 2, sum)
-site_sum3 = apply(dat_sub, 1, sum)
-par(mfrow=c(2,2))
-hist(sp_sum3)
-col = colorRamp(c('red', 'orange', 'blue'))
-sp_cols = col(length(uni_sp3))
-plot(sp_sum3[order(sp_sum3, decreasing=T)], type='o', col='red', lwd=2,
-     xlab='Sp Rank', ylab='Sum Cover')
-hist(site_sum3)
-plot(site_sum3[order(site_sum3, decreasing=T)], type='o', col='red', lwd=2,
-     xlab='Site Rank', ylab='Sum Cover')
 
 ## RDA Analysis
 #Variance partition to see different kinds of variation interactions among
@@ -38,6 +29,8 @@ burn = dummy(sites$burn_season)
 #Show the variation partitioning explaining cover in dat_sub
 varpart(dat_sub, tree, cbind(freq, burn))
 
+#Declare each RDA, by various explanatory variables, and then perform
+#anova() to observe possible significance
 #Subcanopy RDA by burn season and frequency
 rda_sub_burn = rda(dat_sub ~ burn_freq + burn_season, data = sites)
 anova(rda_sub_burn, by='margin', permutations = 1000)
@@ -88,5 +81,6 @@ plot(sub_glm)
 #Compare the two models
 anova(sub_mod, sub_glm)
 
+#sub_mod as a linear model with better AIC score
 AIC(sub_mod)
 AIC(sub_glm)
